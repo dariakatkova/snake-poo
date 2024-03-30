@@ -6,7 +6,8 @@ import time
 
 class Food(Resource):
     """
-    Une pomme vas apparaittre dans une celulle non occupée
+    Une pomme vas apparaittre dans une celulle non occupée.
+    An apple that will appear randomly in a free cell.
     """
     def __init__(self, lines_count, columns_count, cell_size):
         Resource.__init__(self, "🟥")
@@ -22,6 +23,7 @@ class Obstacle:
 class Snake(Animal):
     """
     Un serpent qui avance et grandit quand il mange des pommes. Le serpent meurt quand il touche lui-même ou un mur.
+    A snake that advances and grows when it eats apples. The snake dies when it touches itself or a wall.
     Several animals connected into one?
     get_current_direction exists in Animal
     """
