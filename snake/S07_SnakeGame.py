@@ -1,13 +1,12 @@
-import tkinter as tk
+iimport tkinter as tk
 from S07_TP14_01 import *
 from S07_TP15 import PlanetTk
-#import keyboard
+import keyboard
 import time
 
 class Food(Resource):
     """
-    Une pomme vas apparaittre dans une celulle non occupée.
-    An apple that will appear randomly in a free cell.
+    Une pomme vas apparaittre dans une celulle non occupée
     """
     def __init__(self, lines_count, columns_count, cell_size):
         Resource.__init__(self, "🟥")
@@ -17,13 +16,33 @@ class Food(Resource):
 
         self.__coordinates = [x, y]
 
-class Obstacle:
-    pass
+    def get_coordinates(self):
+        return self.__coordinates
+
+class Obstacle(Element):
+    """
+    An obstacle. When the snake touches it, it dies.
+    """
+    def __init__(self, lines_count, columns_count):
+        Element.__init__(self, "⬛️")
+
+        x = random.randint(0, columns_count - 1)
+        y = random.randint(0, lines_count - 1)
+
+        self.__coordinates = [x, y]
+
+    def get_coordinates(self):
+        return self.__coordinates
+
+    def generate_randomly(self):
+        pass
+
+
+
 
 class Snake(Animal):
     """
     Un serpent qui avance et grandit quand il mange des pommes. Le serpent meurt quand il touche lui-même ou un mur.
-    A snake that advances and grows when it eats apples. The snake dies when it touches itself or a wall.
     Several animals connected into one?
     get_current_direction exists in Animal
     """
@@ -32,6 +51,7 @@ class Snake(Animal):
         self.body_size = 1
         self.squares = []
         self.coordinates = []
+        self.letter_repr = 'S'
 
         for i in range(0, self.body_size):
             self.coordinates.append([0, 0])
@@ -68,15 +88,22 @@ class Snake(Animal):
 
                 break
 
+    def death(self):
+        """
+        if the snake collides with an object, with itself, with the border of the grid
+        """
+        self.char_repr = "🟧"
+
+    def alive(self):
+        self.char_repr = "🟩"
+
 
 class SnakeGame(PlanetTk): #mechanics of the game
     __AUTHORISED_TYPES = {Ground, Snake}
-    def __init__(self,root, lines_count, columns_count, cell_size=20, **kw): #add root
-        
-        PlanetTk.__init__(self, root, "Snake Game", lines_count, columns_count, {Ground, Snake, Food, Obstacle}, cell_size)
+    def __init__(self,root, lines_count, columns_count, cell_size=20):
+        PlanetTk.__init__(self, root, "Snake Game", lines_count, columns_count, {Ground, Snake, Food, Obstacle}, cell_size=cell_size)
         cell_number = self.get_cell_number_from_coordinates((lines_count-1)//2, (columns_count-1) //2)
-        self.add_element(cell_number, Snake())
-        self.title("Snake Game")
+        PlanetTk._born(self, cell_number, Snake)
 
 
         self.gamestatus = 1
@@ -101,26 +128,44 @@ class SnakeGame(PlanetTk): #mechanics of the game
 
         new_coordinates = [self.snake.coordinates[0][0] + direction[0],
                                 self.snake.coordinates[0][1] + direction[1]]
+        new_cell_number = PlanetTk.get_cell_number_from_coordinates(new_coordinates[0], new_coordinates[1])
 
         if 0 <= new_coordinates[0] < self.__lines_count and 0 <= new_coordinates[1] < self.__columns_count:
 
             self.snake.coordinates.insert(0, new_coordinates)
-            PlanetAlpha.born(self, new_coordinates, Snake())
-            PlanetAlpha.die(self, self.snake.coordinates)
+            PlanetTk.move_element(self, old_coordinates, new_cell_number, self.snake)
         else:
-            self.gamestatus = 0
+            self.lives_left -= 1
+            if self.lives_left == 0:
+                self.gamestatus = 0
+                self.snake.death()
 
     def restart(self):
-        pass
+        PlanetTk._born(self, self.__lines_count // 2, self.__columns_count // 2)
+        self.gamestatus = 1
+        self.snake.alive()
 
     def game_over(self):
-        pass
+        if self.gamestatus == 0:
+            self.restart()
+
+    def refresh(self):
+        while self.gamestatus == 1:
+            self.snake.move()
+
+            # Clear the terminal
+            print("\033c", end="")  # works for linux
+
+            # Print the updated grid
+            print(self)
+
+            time.sleep(0.5)
 
 class SnakeGameWindow(tk.Toplevel):
     def __init__(self, master, **kw):
         tk.Toplevel.__init__(self, master, **kw)
         self.__master = master
-        self.__game = SnakeGame(30, 50, cell_size=20)
+        self.__game = SnakeGame(lines_count=30, columns_count=50, cell_size=20)
         self.__game.pack()
         tk.Button(self, text="Quit", command=self.destroy).pack()
         self.title("Snake Game")
@@ -138,17 +183,7 @@ class MyApp(tk.Tk):
 
 
 if __name__ == "__main__":
-    MyApp().mainloop()
-    GAME = SnakeGame(10, 10, 10)
-    while GAME.gamestatus == 1:
-        GAME.move()
-
-        # Clear the terminal (for Linux/macOS/Unix)
-        print("\033c", end="")  # works for linux
-
-        # Print the updated grid
-        print(GAME)
-
-        # Wait for a short period to make movements visible
-        time.sleep(0.5)
-    GAME.game_over()
+    #MyApp().mainloop()
+    ROOT = tk.Tk()
+    GAME = SnakeGame(ROOT, 10, 10)
+    print(GAME)
