@@ -8,31 +8,20 @@ class Food(Resource):
     """
     Une pomme va apparaittre dans une celulle non occupée
     """
-    def __init__(self, lines_count, columns_count, cell_size):
+    def __init__(self):
         Resource.__init__(self, "🟥")
 
-        x = random.randint(0, columns_count - 1)
-        y = random.randint(0, lines_count - 1)
+        self.letter_repr = "F"
 
-        self.__coordinates = [x, y]
-
-    def get_coordinates(self):
-        return self.__coordinates
 
 class Obstacle(Element):
     """
     An obstacle. When the snake touches it, it dies.
     """
-    def __init__(self, lines_count, columns_count):
+    def __init__(self):
         Element.__init__(self, "⬛️")
+        self.letter_repr = 'O'
 
-        x = random.randint(0, columns_count - 1)
-        y = random.randint(0, lines_count - 1)
-
-        self.__coordinates = [x, y]
-
-    def get_coordinates(self):
-        return self.__coordinates
 
 
 class Snake(Animal):
@@ -110,11 +99,12 @@ class SnakeGame(PlanetTk): #mechanics of the game
         self.speed = 15
         self.snake = Snake()
         self.paused = True
-        #self.food = Food(lines_count, columns_count, cell_size)
         self.__lines_count = lines_count
         self.__columns_count = columns_count
+        self.__cell_size = cell_size
         self.coordinate_head = 0
         self.coordinate_tail = 0
+        self.score = 0
 
 
     def pause(self):
@@ -157,22 +147,48 @@ class SnakeGame(PlanetTk): #mechanics of the game
         self.coordinate_tail = self.get_cell_number_from_coordinates(center[0], center[1])
         self.gamestatus = 1
         self.snake.alive()
+        self.add_obstacles()
 
     def game_over(self):
         if self.gamestatus == 0:
             self.restart()
 
     def start_game(self):
+        self.restart()
         while self.gamestatus == 1:
             #if self.paused == False:
                 #self.move()
-                self.restart()
+                self.generate_apple()
+                self.eats_apples()
                 print(PlanetTk.__str__(self))
                 print("\033", end="")
                 time.sleep(0.5)
 
     def add_obstacles(self):
-        pass
+        if self.obstacles == True:
+            for i in range(self.__lines_count * self.__columns_count // 10):
+                PlanetTk.born_randomly(self, Obstacle)
+
+    def generate_apple(self):
+        if 'Food' not in PlanetTk.get_classes_cell_numbers(self):
+            PlanetTk.born_randomly(self, Food)
+
+    def eats_apples(self):
+        food_position = PlanetTk.get_classes_cell_numbers(self)['Food']
+        if food_position == self.coordinate_head:
+            PlanetTk.die(self, food_position, Food) #or food()?
+            self.snake.body_size += 1
+            self.snake.coordinates.append()
+
+    def collisions_obst(self):
+        if 'Obstacle' in PlanetTk.get_classes_cell_numbers(self): #check if obstacles exist
+            list_of_obstacles = PlanetTk.get_classes_cell_numbers(self)['Obstacle']
+            if self.coordinate_head in list_of_obstacles:
+                self.lives_left -= 1
+                if self.lives_left == 0:
+                    self.life = False
+                    self.game_over()
+
 
 class SnakeGameWindow(tk.Toplevel):
     def __init__(self, master, **kw):
@@ -206,6 +222,6 @@ class MyApp(tk.Tk):
 if __name__ == "__main__":
     #MyApp().mainloop()
     ROOT = tk.Tk()
-    GAME = SnakeGame(ROOT, 10, 10)
+    GAME = SnakeGame(ROOT, 10, 10, 10, True)
     GAME.start_game()
     print(GAME)
