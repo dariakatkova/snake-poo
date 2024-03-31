@@ -1,4 +1,4 @@
-iimport tkinter as tk
+import tkinter as tk
 from S07_TP14_01 import *
 from S07_TP15 import PlanetTk
 import keyboard
@@ -36,8 +36,6 @@ class Obstacle(Element):
 
     def generate_randomly(self):
         pass
-
-
 
 
 class Snake(Animal):
@@ -97,14 +95,17 @@ class Snake(Animal):
     def alive(self):
         self.char_repr = "🟩"
 
+    def growth(self):
+        self.body_size += 1
+        #self.coordinates.append()
+
 
 class SnakeGame(PlanetTk): #mechanics of the game
     __AUTHORISED_TYPES = {Ground, Snake}
     def __init__(self,root, lines_count, columns_count, cell_size=20):
         PlanetTk.__init__(self, root, "Snake Game", lines_count, columns_count, {Ground, Snake, Food, Obstacle}, cell_size=cell_size)
         cell_number = self.get_cell_number_from_coordinates((lines_count-1)//2, (columns_count-1) //2)
-        PlanetTk._born(self, cell_number, Snake)
-
+        #PlanetTk._born(self, cell_number, Snake)
 
         self.gamestatus = 1
         self.score = 0
@@ -112,10 +113,11 @@ class SnakeGame(PlanetTk): #mechanics of the game
         self.lives_left = 3
         self.speed = 15
         self.snake = Snake()
-        self.pause = True
+        self.paused = True
         #self.food = Food(lines_count, columns_count, cell_size)
         self.__lines_count = lines_count
         self.__columns_count = columns_count
+
 
     def pause(self):
         if keyboard.read_key() == "space" and self.pause == True:
@@ -123,25 +125,29 @@ class SnakeGame(PlanetTk): #mechanics of the game
         if keyboard.read_key() == "space" and self.pause == False:
             self.pause = False
     def move(self):
+        while self.life == True:
+            if self.paused == False:
+                direction = self.snake.get_current_direction()
 
-        direction = self.snake.get_current_direction()
-
-        new_coordinates = [self.snake.coordinates[0][0] + direction[0],
+                new_coordinates = [self.snake.coordinates[0][0] + direction[0],
                                 self.snake.coordinates[0][1] + direction[1]]
-        new_cell_number = PlanetTk.get_cell_number_from_coordinates(new_coordinates[0], new_coordinates[1])
+                new_cell_number = PlanetTk.get_cell_number_from_coordinates(new_coordinates[0], new_coordinates[1])
 
-        if 0 <= new_coordinates[0] < self.__lines_count and 0 <= new_coordinates[1] < self.__columns_count:
+                if 0 <= new_coordinates[0] < self.__lines_count and 0 <= new_coordinates[1] < self.__columns_count:
 
-            self.snake.coordinates.insert(0, new_coordinates)
-            PlanetTk.move_element(self, old_coordinates, new_cell_number, self.snake)
-        else:
-            self.lives_left -= 1
-            if self.lives_left == 0:
-                self.gamestatus = 0
-                self.snake.death()
+                    self.snake.coordinates.insert(0, new_coordinates)
+                    PlanetTk.move_element(self, self.snake.coordinates[0], new_cell_number, self.snake) #old coordinates do not exist yet
+                else:
+                    self.lives_left -= 1
+                    if self.lives_left == 0:
+                        self.gamestatus = 0
+                        self.snake.death()
+
+                time.sleep(0.5)
 
     def restart(self):
-        PlanetTk._born(self, self.__lines_count // 2, self.__columns_count // 2)
+        center = (self.__lines_count // 2-1, self.__columns_count// 2-1)
+        PlanetTk._born(self, self.get_cell_number_from_coordinates(center[0], center[1]), Snake)
         self.gamestatus = 1
         self.snake.alive()
 
@@ -151,7 +157,7 @@ class SnakeGame(PlanetTk): #mechanics of the game
 
     def refresh(self):
         while self.gamestatus == 1:
-            self.snake.move()
+            self.move()
 
             # Clear the terminal
             print("\033c", end="")  # works for linux
@@ -186,4 +192,6 @@ if __name__ == "__main__":
     #MyApp().mainloop()
     ROOT = tk.Tk()
     GAME = SnakeGame(ROOT, 10, 10)
+    GAME.restart()
+    GAME.refresh()
     print(GAME)
