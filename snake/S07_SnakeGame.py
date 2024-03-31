@@ -34,7 +34,7 @@ class Snake(Animal):
         Animal.__init__(self, "🟩", 3)
         self.body_size = 4
         self.squares = []
-        self.coordinates = [] #contains tuple (number of block, x, y)
+        self.coordinates = [] #contains list [number of block, cell number]
         self.letter_repr = 'S'
 
         for i in range(0, self.body_size):
@@ -117,21 +117,7 @@ class SnakeGame(PlanetTk): #mechanics of the game
         #self.snake.turn()
         while self.life == True:
             if self.paused == False:
-                direction = self.snake.get_current_direction()
-
-                new_coordinates = [self.snake.coordinates[0][0] + direction[0],
-                                self.snake.coordinates[0][1] + direction[1]]
-                new_cell_number = PlanetTk.get_cell_number_from_coordinates(new_coordinates[0], new_coordinates[1])
-
-                if 0 <= new_coordinates[0] < self.__lines_count and 0 <= new_coordinates[1] < self.__columns_count:
-
-                    self.snake.coordinates.insert(0, new_coordinates)
-                    PlanetTk.move_element(self, self.snake.coordinates[0], new_cell_number, self.snake) #old coordinates do not exist yet
-                else:
-                    self.lives_left -= 1
-                    if self.lives_left == 0:
-                        self.gamestatus = 0
-                        self.snake.death()
+                
 
                 time.sleep(0.5)
 
@@ -178,7 +164,13 @@ class SnakeGame(PlanetTk): #mechanics of the game
         if food_position == self.coordinate_head:
             PlanetTk.die(self, food_position, Food) #or food()?
             self.snake.body_size += 1
-            self.snake.coordinates.append()
+            self.score += 1
+
+    def win(self):
+        if self.score > 50:
+            #add label "you won", pause snake
+            pass
+
 
     def collisions_obst(self):
         if 'Obstacle' in PlanetTk.get_classes_cell_numbers(self): #check if obstacles exist
@@ -224,4 +216,4 @@ if __name__ == "__main__":
     ROOT = tk.Tk()
     GAME = SnakeGame(ROOT, 10, 10, 10, True)
     GAME.start_game()
-    print(GAME)
+    print(GAME.snake.coordinates)
