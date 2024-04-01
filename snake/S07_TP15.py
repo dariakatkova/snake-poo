@@ -3,17 +3,16 @@ from S06_TP11 import PlanetAlpha
 from S07_TP14_01 import *
 
 class PlanetTk(PlanetAlpha, tk.Canvas):
-    def __init__(self, name, latitude_cells_count, longtitude_cells_count, authorised_classes, background_color='white', foreground_color='dark blue', gridlines_color='maroon', cell_size=40, gutter_size=0, margin_size=0, show_content=True, show_grid_lines=True, **kw):
-        self.root = tk.Tk()
+    def __init__(self,root, name, latitude_cells_count, longtitude_cells_count, authorised_classes, background_color='white', foreground_color='dark blue', gridlines_color='maroon', cell_size=40, gutter_size=0, margin_size=0, show_content=True, show_grid_lines=True, **kw):
         PlanetAlpha.__init__(self, name, latitude_cells_count, longtitude_cells_count, Ground())
         w = longtitude_cells_count * cell_size + (longtitude_cells_count - 1) * gutter_size + 2 * margin_size
         h = latitude_cells_count * cell_size + (latitude_cells_count - 1) * gutter_size + 2 * margin_size
-        tk.Canvas.__init__(self, self.root, width=w, height=h, background=background_color)
+        tk.Canvas.__init__(self, root, width=w, height=h, background=background_color)
 
         self.__cell_size = cell_size
         self.__gutter_size = gutter_size
         self.__margin_size = margin_size
-        #self.__root = root
+        self.__root = root
         self.__show_content = show_content
         self.__show_grid_lines = show_grid_lines
         self.__authorised_classes = authorised_classes
@@ -36,7 +35,7 @@ class PlanetTk(PlanetAlpha, tk.Canvas):
         self.pack()
 
     def get_root(self):
-        return self.root
+        return self.__root
 
     def get_background_color(self):
         return self.__background_color
@@ -44,7 +43,7 @@ class PlanetTk(PlanetAlpha, tk.Canvas):
     def get_foreground_color(self):
         return self.__foreground_color
 
-    def _born(self, cell_number, element): 
+    def _born(self, cell_number, element):
         #if element in self.__authorised_classes:
         PlanetAlpha.born(self, cell_number, element())
         tag_c = f"c_{cell_number}"
@@ -54,14 +53,14 @@ class PlanetTk(PlanetAlpha, tk.Canvas):
         self.lift(tag_t)
         self.itemconfigure(tag_c, fill=self.__background_color)
         self.itemconfigure(tag_t, fill=self.__foreground_color)
-            
-            
-            
+
+
+
     def die(self, cell_number, element): # why element?
         PlanetAlpha.die(self, cell_number)
         tag_t = f"t_{cell_number}"
         self.delete(tag_t)
-        
+
 
     def born_randomly(self, element):
         place = PlanetAlpha.get_random_free_place(self)
@@ -96,9 +95,9 @@ class PlanetTk(PlanetAlpha, tk.Canvas):
         return PlanetAlpha.__repr__(self)
 
 if __name__ == "__main__":
-    #ROOT = tk.Tk()
+    ROOT = tk.Tk()
     AUTHORISED_TYPES = {Ground, Water, Herb, Cow, Lion, Dragon}
-    PLANET = PlanetTk( "Terre", 10, 10, AUTHORISED_TYPES)
+    PLANET = PlanetTk(ROOT, "Terre", 10, 10, AUTHORISED_TYPES)
     assert type(PLANET.get_root()) == tk.Tk
     assert PLANET.get_background_color() == 'white'
     assert PLANET.get_foreground_color() == 'dark blue'
@@ -106,13 +105,13 @@ if __name__ == "__main__":
     #print(PLANET)
     #PLANET.die(3, Dragon)
     #print(PLANET)
-    #PLANET.born_randomly(Dragon)
+    PLANET.born_randomly(Dragon)
     #print(PLANET)
-    #PLANET.populate({Dragon: 50})
+    PLANET.populate({Dragon: 50})
     #print(PLANET)
     PLANET.move_element(3, 4, Dragon)
-    #print(PLANET.get_classes_cell_numbers())
+    print(PLANET.get_classes_cell_numbers())
     print(PLANET)
 
-    ROOT.mainloop()
+    #ROOT.mainloop()
     print("All tests Ok")
